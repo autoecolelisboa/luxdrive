@@ -28,12 +28,12 @@ export function App() {
 
   if (state.status === 'loading') return <div className="login"><p className="muted">{t('chargement')}</p></div>;
   if (state.status === 'error')
-    return <div className="login"><div className="login-box center"><img src="./logo.svg" alt="" style={{ width: 160 }} /><div className="alert bad">{state.message.includes('CONFIG') ? t('config_manquante') : state.message}</div></div></div>;
+    return <div className="login"><div className="login-box center"><img src="./logo.svg?v=2" alt="" style={{ width: 160 }} /><div className="alert bad">{state.message.includes('CONFIG') ? t('config_manquante') : state.message}</div></div></div>;
   if (state.status === 'signedOut') return <Login />;
   if (state.status === 'inactive')
     return (
       <div className="login"><div className="login-box center stack">
-        <img src="./logo.svg" alt="" />
+        <img src="./logo.svg?v=2" alt="" />
         <div className="alert">{t('compte_inactif')}</div>
         <button className="btn secondary" onClick={() => backend().signOut()}>{t('deconnexion')}</button>
       </div></div>

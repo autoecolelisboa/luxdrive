@@ -23,7 +23,7 @@ export function Layout({ nav, wide }: { nav: NavItem[]; wide?: boolean }) {
       )}
       <header className="topbar no-print">
         <div className="topbar-in">
-          <img src="./logo.svg" alt="Auto École Lisboa" />
+          <img src="./logo.svg?v=2" alt="Auto École Lisboa" />
           <div className="grow">
             <div className="brand-name">LuxDrive</div>
           </div>

@@ -69,7 +69,7 @@ export function SetPassword({ onDone }: { onDone: () => void }) {
   const [pw, setPw] = useState('');
   return (
     <div className="login"><form className="login-box stack" onSubmit={e => { e.preventDefault(); run(async () => { await backend().updatePassword(pw); onDone(); }, t('mdp_modifie')); }}>
-      <img src="./logo.svg" alt="" />
+      <img src="./logo.svg?v=2" alt="" />
       <h1 className="center">{t('choisir_mdp')}</h1>
       <Field label={t('nouveau_mdp')}><input className="input" type="password" autoComplete="new-password" minLength={8} required value={pw} onChange={e => setPw(e.target.value)} /></Field>
       <button className="btn block" disabled={busy || pw.length < 8}>{t('enregistrer')}</button>

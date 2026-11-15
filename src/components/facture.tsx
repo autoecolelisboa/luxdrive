@@ -27,7 +27,7 @@ export function FactureDetail({ f }: { f: Facture }) {
     <div className="printable stack">
       <div className="row between">
         <div>
-          <img src="./logo.svg" alt="" style={{ height: 48 }} />
+          <img src="./logo.svg?v=2" alt="" style={{ height: 48 }} />
           <div className="small muted">{me.ecole.nom} · {me.ecole.adresse}{me.ecole.numero_tva ? ` · TVA ${me.ecole.numero_tva}` : ''}</div>
         </div>
         <FactureBadge f={f} />

@@ -27,7 +27,7 @@ export function Login() {
   return (
     <div className="login">
       <div className="login-box">
-        <img src="./logo.svg" alt="Auto École Lisboa" />
+        <img src="./logo.svg?v=2" alt="Auto École Lisboa" />
         <div className="chips" style={{ justifyContent: 'center', marginBottom: 24 }}>
           {LANGS.map(l => <button key={l.code} className={'chip' + (l.code === lang ? ' on' : '')} onClick={() => setLang(l.code)}>{l.code.toUpperCase()}</button>)}
         </div>
