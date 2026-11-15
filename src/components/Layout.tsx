@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { backend } from '../lib/backend';
 import { useI18n } from '../lib/i18n';
 import { useMe, useSession } from '../lib/session';
@@ -27,7 +27,7 @@ export function Layout({ nav, wide }: { nav: NavItem[]; wide?: boolean }) {
           <div className="grow">
             <div className="brand-name">LuxDrive</div>
           </div>
-          <span className="muted small">{me.profil.prenom}</span>
+          <Link to="/profil" className="btn ghost sm" aria-label={t('mon_profil')}><Icon name="user" size={18} /> {me.profil.prenom}</Link>
         </div>
       </header>
       <main className={'content' + (wide ? ' wide' : '')}>
