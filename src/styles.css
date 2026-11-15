@@ -4,7 +4,9 @@
 @import '@fontsource/playfair-display/latin-600.css';
 @import '@fontsource/playfair-display/latin-700.css';
 
+/* L'application reste toujours claire (logo noir sur fond blanc), même si le téléphone est en mode sombre */
 :root {
+  color-scheme: only light;
   --brand: #111111; --brand-soft: #EFEDE8; --accent: #B5B2A8;
   --danger: #B42318; --danger-soft: #FBEAE8; --success: #1E7F4F; --success-soft: #E6F3EC; --warn: #8A5A00; --warn-soft: #FBF1DC;
   --ink: #1A1A1A; --ink-muted: #5F5E5A; --surface: #FFFFFF; --surface-2: #F6F5F2; --line: #DDDBD5;
