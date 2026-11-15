@@ -53,3 +53,16 @@ export const epcPayload = (o: { benef: string; iban: string; montant: number; co
   return ['BCD', '002', '1', 'SCT', '', ascii(o.benef).slice(0, 70), o.iban.replace(/\s+/g, '').toUpperCase(),
     'EUR' + Number(o.montant).toFixed(2), '', '', ascii(o.communication).slice(0, 140)].join('\n');
 };
+
+/** IBAN check: country length + mod-97 checksum */
+const IBAN_LEN: Record<string, number> = { LU: 20, FR: 27, BE: 16, DE: 22, PT: 25, NL: 18, ES: 24, IT: 27, CH: 21 };
+export const ibanValide = (raw: string) => {
+  const s = raw.replace(/\s+/g, '').toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{8,30}$/.test(s)) return false;
+  const len = IBAN_LEN[s.slice(0, 2)];
+  if (len && s.length !== len) return false;
+  const r = s.slice(4) + s.slice(0, 4);
+  let mod = 0;
+  for (const c of r) { const v = parseInt(c, 36).toString(); for (const d of v) mod = (mod * 10 + Number(d)) % 97; }
+  return mod === 1;
+};

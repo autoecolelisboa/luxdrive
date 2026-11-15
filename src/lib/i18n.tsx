@@ -271,6 +271,7 @@ const D: Record<string, [string, string, string]> = {
   err_EMAIL_DEJA_UTILISE: ['Cette adresse e-mail est déjà utilisée.', 'This email address is already in use.', 'Este e-mail já está a ser utilizado.'],
   err_INTERDIT: ['Vous n’avez pas les droits pour cette action.', 'You are not allowed to do this.', 'Não tem permissão para esta ação.'],
   err_DEJA_TRAITE: ['Déjà traité.', 'Already processed.', 'Já tratado.'],
+  err_IBAN_INVALIDE: ['IBAN incorrect : vérifiez-le (au Luxembourg, 20 caractères : LU + 18 chiffres).', 'Invalid IBAN: please check it (in Luxembourg, 20 characters: LU + 18 digits).', 'IBAN incorreto: verifique-o (no Luxemburgo, 20 caracteres: LU + 18 dígitos).'],
   err_inconnue: ['Une erreur est survenue. Réessayez.', 'Something went wrong. Please try again.', 'Ocorreu um erro. Tente novamente.'],
 };
 

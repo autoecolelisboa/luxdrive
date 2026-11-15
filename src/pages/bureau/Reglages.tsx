@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { backend } from '../../lib/backend';
-import { dateShort, euro } from '../../lib/format';
+import { dateShort, euro, ibanValide } from '../../lib/format';
 import { useI18n } from '../../lib/i18n';
 import { useMe } from '../../lib/session';
 import { Field, Loading, Sheet, useAction, useLoad } from '../../components/ui';
@@ -33,6 +33,7 @@ export function Reglages() {
   const jours = t('jours_courts').split(',');
 
   const save = () => run(async () => {
+    if (ae.iban?.trim() && !ibanValide(ae.iban)) throw new Error('IBAN_INVALIDE');
     const heures = ae.heures.split(/[,;\s]+/).map(Number).filter(h => Number.isInteger(h) && h >= 0 && h <= 23).sort((a, c) => a - c);
     await b.update('auto_ecoles', {
       adresse: ae.adresse, telephone: ae.telephone, email: ae.email, beneficiaire: ae.beneficiaire, iban: ae.iban?.toUpperCase() ?? null,
@@ -101,7 +102,7 @@ export function Reglages() {
             <Field label={t('telephone')}><input className="input" value={ae.telephone ?? ''} onChange={e => setAe({ ...ae, telephone: e.target.value })} /></Field>
             <Field label={t('email')}><input className="input" type="email" value={ae.email ?? ''} onChange={e => setAe({ ...ae, email: e.target.value })} /></Field>
             <Field label={t('beneficiaire')}><input className="input" value={ae.beneficiaire ?? ''} onChange={e => setAe({ ...ae, beneficiaire: e.target.value })} /></Field>
-            <Field label={t('iban')}><input className="input mono" value={ae.iban ?? ''} onChange={e => setAe({ ...ae, iban: e.target.value })} placeholder="LU.." /></Field>
+            <Field label={t('iban')}><input className="input mono" value={ae.iban ?? ''} onChange={e => setAe({ ...ae, iban: e.target.value })} placeholder="LU.." />{ae.iban?.trim() && !ibanValide(ae.iban) && <span className="small" style={{ color: 'var(--danger)' }}>{t('err_IBAN_INVALIDE')}</span>}</Field>
             <Field label={t('numero_tva')}><input className="input" value={ae.numero_tva ?? ''} onChange={e => setAe({ ...ae, numero_tva: e.target.value })} placeholder="LU12345678" /></Field>
             <Field label={t('numero_agrement')}><input className="input" value={ae.numero_agrement ?? ''} onChange={e => setAe({ ...ae, numero_agrement: e.target.value })} /></Field>
           </div>
