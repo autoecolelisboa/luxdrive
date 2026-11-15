@@ -12,7 +12,7 @@ const demoSchema = schemaSql
   .replace(/create extension if not exists btree_gist[^;]*;/, '')
   .replace(/,\s*-- Jamais deux leçons[^\n]*\n\s*constraint lecons_moniteur_sans_chevauchement[\s\S]*?constraint lecons_eleve_sans_chevauchement[\s\S]*?where \(statut in \('reservee','effectuee','absence'\)\)/, '');
 
-const DB_NAME = 'luxdrive-demo-3';
+const DB_NAME = 'luxdrive-demo-4';
 const USER_KEY = 'luxdrive-demo-user';
 const SETOF = new Set(['creneaux_libres']);
 const AE = '00000000-0000-4000-8000-000000000001';

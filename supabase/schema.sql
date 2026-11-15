@@ -284,7 +284,7 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 create or replace function public.est_service() returns boolean  -- appels serveur (webhook Wero)
-language sql stable as $$
+language sql stable set search_path = public as $$
   select coalesce(auth.jwt() ->> 'role', '') = 'service_role'
 $$;
 
@@ -303,13 +303,20 @@ $$;
 -- 3. Vues de lecture (respectent les droits de chacun)
 -- ---------------------------------------------------------------------
 
-create view public.soldes as
-  select e.id as eleve_id,
-         coalesce((select sum(m.heures) from mouvements_heures m where m.eleve_id = e.id), 0) as solde_heures,
-         (select count(*) from presences_theorie p where p.eleve_id = e.id and p.present)    as theorie_faites,
-         (select count(*) from lecons l where l.eleve_id = e.id and l.statut = 'effectuee')  as pratique_faites
+-- Soldes et progression : chacun ne voit que ce qu'il a le droit de voir
+create or replace function public.soldes_visibles()
+returns table (eleve_id uuid, solde_heures numeric, theorie_faites bigint, pratique_faites bigint)
+language sql stable security definer set search_path = public as $$
+  select e.id,
+         coalesce((select sum(m.heures) from mouvements_heures m where m.eleve_id = e.id), 0),
+         (select count(*) from presences_theorie p where p.eleve_id = e.id and p.present),
+         (select count(*) from lecons l where l.eleve_id = e.id and l.statut = 'effectuee')
   from eleves e
-  where e.id = auth.uid() or (e.auto_ecole_id = public.mon_ecole() and public.est_staff());
+  where e.id = auth.uid() or (e.auto_ecole_id = public.mon_ecole() and public.est_staff())
+$$;
+
+create view public.soldes with (security_invoker = true) as
+  select * from public.soldes_visibles();
 revoke all on public.soldes from anon;
 
 -- Vues pour l'affichage (les droits de chacun s'appliquent)
@@ -796,7 +803,8 @@ grant execute on function public.creneaux_libres(date, uuid, uuid), public.reser
   public.valider_lecon(uuid, text, text[], jsonb), public.marquer_absence(uuid), public.pointer_seance(uuid, uuid[]),
   public.creer_facture(uuid, text, text), public.encaisser_facture(uuid, text, text), public.ajuster_solde(uuid, numeric, text),
   public.annuler_facture(uuid, text), public.definir_acces(uuid, text, boolean),
-  public.mon_role(), public.mon_ecole(), public.est_bureau(), public.est_staff(), public.voit_tout(), public.est_service()
+  public.mon_role(), public.mon_ecole(), public.est_bureau(), public.est_staff(), public.voit_tout(), public.est_service(),
+  public.soldes_visibles()
   to authenticated;
 grant execute on function public.encaisser_facture(uuid, text, text), public.est_service() to service_role;
 
