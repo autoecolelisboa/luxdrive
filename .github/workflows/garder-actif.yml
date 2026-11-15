@@ -1,0 +1,18 @@
+# Garde la base Supabase active (l'offre gratuite se met en pause après 7 jours sans visite).
+# Une visite par jour, sans aucune donnée lue : la clé utilisée est la clé publique de l'application.
+name: Garder la base active
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+jobs:
+  visite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Visite quotidienne
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            'https://zgikelunzxrqlstjdrls.supabase.co/rest/v1/formules?select=code&limit=1' \
+            -H 'apikey: sb_publishable_z9D2VsLtCfUKItTd7pnpbw_yCJqcxcj')
+          echo "Réponse de la base : $code"
+          test "$code" = "200"
