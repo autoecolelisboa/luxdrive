@@ -1,0 +1,310 @@
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+
+export type Lang = 'fr' | 'en' | 'pt';
+export const LANGS: { code: Lang; label: string }[] = [
+  { code: 'fr', label: 'Français' }, { code: 'pt', label: 'Português' }, { code: 'en', label: 'English' },
+];
+
+// key: [fr, en, pt]
+const D: Record<string, [string, string, string]> = {
+  // Général
+  app_sous_titre: ['Auto École Lisboa', 'Auto École Lisboa', 'Auto École Lisboa'],
+  chargement: ['Chargement…', 'Loading…', 'A carregar…'],
+  annuler: ['Annuler', 'Cancel', 'Cancelar'],
+  confirmer: ['Confirmer', 'Confirm', 'Confirmar'],
+  fermer: ['Fermer', 'Close', 'Fechar'],
+  enregistrer: ['Enregistrer', 'Save', 'Guardar'],
+  enregistre: ['Enregistré', 'Saved', 'Guardado'],
+  retour: ['Retour', 'Back', 'Voltar'],
+  rechercher: ['Rechercher', 'Search', 'Pesquisar'],
+  aucun: ['Rien pour le moment.', 'Nothing yet.', 'Nada de momento.'],
+  heures_n: ['{n} h', '{n} h', '{n} h'],
+  avec: ['avec {nom}', 'with {nom}', 'com {nom}'],
+  lieu_depart: ['Lieu de départ', 'Meeting point', 'Local de partida'],
+  auto_ecole: ['Auto-école', 'Driving school', 'Auto-escola'],
+  deconnexion: ['Se déconnecter', 'Sign out', 'Terminar sessão'],
+  mode_demo: ['Démo', 'Demo', 'Demo'],
+  changer_compte: ['Changer de compte', 'Switch account', 'Mudar de conta'],
+  reinitialiser_demo: ['Réinitialiser la démo', 'Reset demo', 'Repor a demo'],
+  imprimer: ['Imprimer / PDF', 'Print / PDF', 'Imprimir / PDF'],
+  motif: ['Motif', 'Reason', 'Motivo'],
+  date: ['Date', 'Date', 'Data'],
+  heure: ['Heure', 'Time', 'Hora'],
+  telephone: ['Téléphone', 'Phone', 'Telefone'],
+  email: ['E-mail', 'Email', 'E-mail'],
+  langue: ['Langue', 'Language', 'Idioma'],
+  prenom: ['Prénom', 'First name', 'Nome'],
+  nom: ['Nom', 'Last name', 'Apelido'],
+  ok: ['OK', 'OK', 'OK'],
+  choisir_mdp: ['Choisissez votre mot de passe', 'Choose your password', 'Escolha a sua palavra-passe'],
+  nouveau_mdp: ['Nouveau mot de passe (8 caractères minimum)', 'New password (at least 8 characters)', 'Nova palavra-passe (mínimo 8 caracteres)'],
+  changer_mdp: ['Changer mon mot de passe', 'Change my password', 'Alterar a palavra-passe'],
+  mdp_modifie: ['Mot de passe enregistré', 'Password saved', 'Palavra-passe guardada'],
+
+  // Connexion
+  connexion: ['Connexion', 'Sign in', 'Iniciar sessão'],
+  mot_de_passe: ['Mot de passe', 'Password', 'Palavra-passe'],
+  se_connecter: ['Se connecter', 'Sign in', 'Entrar'],
+  mdp_oublie: ['Mot de passe oublié ?', 'Forgot password?', 'Esqueceu a palavra-passe?'],
+  mdp_envoye: ['Si un compte existe pour cette adresse, un lien de réinitialisation vous a été envoyé.', 'If an account exists for this address, a reset link has been sent.', 'Se existir uma conta para este endereço, foi enviado um link de reposição.'],
+  demo_choisir: ['Mode démonstration : choisissez un compte pour essayer l’application.', 'Demo mode: pick an account to try the app.', 'Modo de demonstração: escolha uma conta para experimentar a aplicação.'],
+  demo_info: ['Les données de démonstration restent dans ce navigateur.', 'Demo data stays in this browser.', 'Os dados de demonstração ficam neste navegador.'],
+  compte_inactif: ['Votre compte n’est pas encore activé. Contactez l’auto-école.', 'Your account is not active yet. Please contact the driving school.', 'A sua conta ainda não está ativa. Contacte a auto-escola.'],
+  config_manquante: ['L’application n’est pas encore reliée à sa base de données.', 'The app is not connected to its database yet.', 'A aplicação ainda não está ligada à base de dados.'],
+
+  // Navigation
+  nav_accueil: ['Accueil', 'Home', 'Início'],
+  nav_reserver: ['Réserver', 'Book', 'Reservar'],
+  nav_lecons: ['Mes leçons', 'My lessons', 'As minhas aulas'],
+  nav_paiements: ['Paiements', 'Payments', 'Pagamentos'],
+  nav_profil: ['Profil', 'Profile', 'Perfil'],
+  nav_journee: ['Ma journée', 'My day', 'O meu dia'],
+  nav_theorie: ['Théorie', 'Theory', 'Teoria'],
+  nav_agenda: ['Agenda', 'Schedule', 'Agenda'],
+  nav_eleves: ['Élèves', 'Students', 'Alunos'],
+  nav_factures: ['Factures', 'Invoices', 'Faturas'],
+  nav_justificatifs: ['Certificats', 'Certificates', 'Atestados'],
+  nav_reglages: ['Réglages', 'Settings', 'Definições'],
+
+  // Élève — accueil
+  bonjour: ['Bonjour {prenom}', 'Hello {prenom}', 'Olá {prenom}'],
+  solde: ['Heures disponibles', 'Hours available', 'Horas disponíveis'],
+  prochaine_lecon: ['Prochaine leçon', 'Next lesson', 'Próxima aula'],
+  aucune_lecon_prevue: ['Aucune leçon prévue.', 'No lesson planned.', 'Nenhuma aula marcada.'],
+  reserver_lecon: ['Réserver une leçon', 'Book a lesson', 'Reservar uma aula'],
+  acheter_heures: ['Acheter des heures', 'Buy hours', 'Comprar horas'],
+  progression: ['Ma progression', 'My progress', 'O meu progresso'],
+  theorie_faites: ['Théorie : {n} / 12 leçons', 'Theory: {n} / 12 lessons', 'Teoria: {n} / 12 aulas'],
+  pratique_faites: ['Pratique : {n} / 16 leçons', 'Practice: {n} / 16 lessons', 'Prática: {n} / 16 aulas'],
+  theorie_requise: ['Les leçons de conduite se réservent après la réussite de l’examen théorique.', 'Driving lessons can be booked once the theory exam is passed.', 'As aulas de condução reservam-se após a aprovação no exame teórico.'],
+  accompagnee_info: ['Conduite accompagnée : 12 leçons dont 2 avec votre accompagnateur, puis 4 leçons finales. Pas de conduite hors du Luxembourg ni entre 23 h et 6 h.', 'Accompanied driving: 12 lessons including 2 with your companion, then 4 final lessons. No driving outside Luxembourg or between 11 pm and 6 am.', 'Condução acompanhada: 12 aulas, 2 delas com o seu acompanhante, e depois 4 aulas finais. Não conduzir fora do Luxemburgo nem entre as 23 h e as 6 h.'],
+  notifications: ['Notifications', 'Notifications', 'Notificações'],
+  certificat_porter: ['Pensez à avoir votre certificat d’apprentissage sur vous pendant chaque leçon.', 'Remember to carry your learner’s certificate during every lesson.', 'Lembre-se de levar o seu certificado de aprendizagem em todas as aulas.'],
+
+  // Réserver
+  choisir_jour: ['Choisissez un jour', 'Choose a day', 'Escolha um dia'],
+  moniteur: ['Moniteur', 'Instructor', 'Instrutor'],
+  peu_importe: ['Peu importe', 'Any', 'Qualquer'],
+  creneaux_libres: ['Créneaux libres', 'Free slots', 'Horários livres'],
+  aucun_creneau: ['Aucun créneau libre ce jour-là.', 'No free slots that day.', 'Sem horários livres nesse dia.'],
+  ferme: ['Fermé', 'Closed', 'Fechado'],
+  semaine_compte: ['{n} / {max} leçons cette semaine', '{n} / {max} lessons this week', '{n} / {max} aulas esta semana'],
+  confirmer_lecon: ['Confirmer la leçon', 'Confirm the lesson', 'Confirmar a aula'],
+  heure_deduite: ['1 h sera déduite de votre solde. Annulation gratuite jusqu’à {h} h avant.', '1 h will be deducted from your balance. Free cancellation up to {h} h before.', '1 h será descontada do seu saldo. Cancelamento gratuito até {h} h antes.'],
+  lecon_reservee: ['Leçon réservée', 'Lesson booked', 'Aula reservada'],
+
+  // Mes leçons
+  a_venir: ['À venir', 'Upcoming', 'Próximas'],
+  passees: ['Passées', 'Past', 'Passadas'],
+  st_reservee: ['Réservée', 'Booked', 'Reservada'],
+  st_effectuee: ['Effectuée', 'Done', 'Realizada'],
+  st_annulee: ['Annulée', 'Cancelled', 'Cancelada'],
+  st_annulee_tardive: ['Annulée à moins de {h} h', 'Cancelled less than {h} h before', 'Cancelada com menos de {h} h'],
+  st_absence: ['Absence', 'No-show', 'Falta'],
+  annuler_lecon: ['Annuler la leçon', 'Cancel the lesson', 'Cancelar a aula'],
+  annul_gratuite: ['Annulation gratuite : l’heure sera remise sur votre solde.', 'Free cancellation: the hour goes back to your balance.', 'Cancelamento gratuito: a hora volta para o seu saldo.'],
+  annul_tardive: ['Moins de {h} h avant la leçon : l’heure ne sera pas remboursée, sauf si vous envoyez un certificat médical accepté par l’auto-école.', 'Less than {h} h before the lesson: the hour is not refunded, unless you send a medical certificate accepted by the driving school.', 'Menos de {h} h antes da aula: a hora não é reembolsada, salvo com um atestado médico aceite pela auto-escola.'],
+  annuler_quand_meme: ['Annuler quand même', 'Cancel anyway', 'Cancelar mesmo assim'],
+  garder_lecon: ['Garder ma leçon', 'Keep my lesson', 'Manter a aula'],
+  envoyer_certificat: ['Envoyer un certificat médical', 'Send a medical certificate', 'Enviar atestado médico'],
+  certificat_attente: ['Certificat envoyé, en cours de vérification', 'Certificate sent, being reviewed', 'Atestado enviado, em verificação'],
+  certificat_accepte: ['Certificat accepté : heure recréditée', 'Certificate accepted: hour credited back', 'Atestado aceite: hora devolvida'],
+  certificat_refuse: ['Certificat refusé : {motif}', 'Certificate refused: {motif}', 'Atestado recusado: {motif}'],
+  commentaire_moniteur: ['Commentaire du moniteur', 'Instructor’s comment', 'Comentário do instrutor'],
+
+  // Paiements
+  formules: ['Formules', 'Packages', 'Pacotes'],
+  lecon_unite: ['Leçon à l’unité', 'Single lesson', 'Aula avulsa'],
+  forfait_n: ['Forfait {n} leçons', '{n}-lesson package', 'Pacote de {n} aulas'],
+  ttc: ['TTC', 'incl. VAT', 'IVA incl.'],
+  ht: ['HT', 'excl. VAT', 's/ IVA'],
+  tva: ['TVA', 'VAT', 'IVA'],
+  total: ['Total', 'Total', 'Total'],
+  choisir_paiement: ['Comment souhaitez-vous payer ?', 'How would you like to pay?', 'Como pretende pagar?'],
+  wero: ['Wero', 'Wero', 'Wero'],
+  wero_desc: ['Paiement immédiat depuis votre application bancaire. Heures ajoutées tout de suite.', 'Instant payment from your banking app. Hours added right away.', 'Pagamento imediato na sua aplicação bancária. Horas adicionadas de imediato.'],
+  virement: ['Virement bancaire', 'Bank transfer', 'Transferência bancária'],
+  virement_desc: ['Heures ajoutées dès réception du virement.', 'Hours added once the transfer is received.', 'Horas adicionadas após receção da transferência.'],
+  especes: ['Espèces à l’auto-école', 'Cash at the driving school', 'Numerário na auto-escola'],
+  especes_desc: ['Heures ajoutées dès l’encaissement au bureau.', 'Hours added once paid at the office.', 'Horas adicionadas após pagamento no escritório.'],
+  payer_wero: ['Payer {m} avec Wero', 'Pay {m} with Wero', 'Pagar {m} com Wero'],
+  wero_bientot: ['Le paiement Wero sera activé prochainement. Choisissez le virement ou les espèces.', 'Wero payment will be available soon. Please choose transfer or cash.', 'O pagamento Wero ficará disponível em breve. Escolha transferência ou numerário.'],
+  paiement_recu: ['Paiement reçu : {n} h ajoutées à votre solde.', 'Payment received: {n} h added to your balance.', 'Pagamento recebido: {n} h adicionadas ao saldo.'],
+  virement_infos: ['Effectuez le virement avec ces informations :', 'Make the transfer with these details:', 'Faça a transferência com estes dados:'],
+  beneficiaire: ['Bénéficiaire', 'Beneficiary', 'Beneficiário'],
+  iban: ['IBAN', 'IBAN', 'IBAN'],
+  montant: ['Montant', 'Amount', 'Montante'],
+  communication: ['Communication', 'Reference', 'Referência'],
+  scanner_qr: ['Ou scannez ce code avec votre application bancaire.', 'Or scan this code with your banking app.', 'Ou digitalize este código com a sua aplicação bancária.'],
+  iban_absent: ['L’auto-école n’a pas encore renseigné son IBAN. Choisissez un autre moyen de paiement.', 'The driving school has not entered its IBAN yet. Please choose another method.', 'A auto-escola ainda não indicou o IBAN. Escolha outro meio de pagamento.'],
+  especes_infos: ['Réglez {m} à l’auto-école ({adresse}). Vos heures seront ajoutées dès l’encaissement.', 'Pay {m} at the driving school ({adresse}). Your hours are added once paid.', 'Pague {m} na auto-escola ({adresse}). As horas são adicionadas após o pagamento.'],
+  copier: ['Copier', 'Copy', 'Copiar'],
+  copie: ['Copié', 'Copied', 'Copiado'],
+  mes_factures: ['Mes factures', 'My invoices', 'As minhas faturas'],
+  fst_a_payer: ['À payer', 'To pay', 'Por pagar'],
+  fst_payee: ['Payée', 'Paid', 'Paga'],
+  fst_annulee: ['Annulée', 'Cancelled', 'Anulada'],
+  attente_virement: ['En attente de votre virement', 'Waiting for your transfer', 'A aguardar a sua transferência'],
+  attente_especes: ['À régler à l’auto-école', 'To pay at the driving school', 'A pagar na auto-escola'],
+  facture: ['Facture', 'Invoice', 'Fatura'],
+  emise_le: ['Émise le {d}', 'Issued on {d}', 'Emitida em {d}'],
+  payer: ['Payer', 'Pay', 'Pagar'],
+  voir: ['Voir', 'View', 'Ver'],
+
+  // Profil
+  mon_profil: ['Mon profil', 'My profile', 'O meu perfil'],
+  regime: ['Formation', 'Training', 'Formação'],
+  regime_classique: ['Classique', 'Standard', 'Clássica'],
+  regime_accompagnee: ['Conduite accompagnée', 'Accompanied driving', 'Condução acompanhada'],
+  certificat_apprentissage: ['Certificat d’apprentissage', 'Learner’s certificate', 'Certificado de aprendizagem'],
+  accompagnateur: ['Accompagnateur', 'Companion', 'Acompanhante'],
+
+  // Moniteur
+  lecons_du_jour: ['Leçons du jour', 'Today’s lessons', 'Aulas do dia'],
+  aujourd_hui: ['Aujourd’hui', 'Today', 'Hoje'],
+  commencer: ['Ouvrir la leçon', 'Open lesson', 'Abrir aula'],
+  points_travailles: ['Points travaillés', 'Skills practised', 'Pontos trabalhados'],
+  commentaire: ['Commentaire pour l’élève', 'Comment for the student', 'Comentário para o aluno'],
+  signature_eleve: ['Signature de l’élève', 'Student’s signature', 'Assinatura do aluno'],
+  effacer: ['Effacer', 'Clear', 'Apagar'],
+  valider_lecon: ['Valider la leçon', 'Validate lesson', 'Validar aula'],
+  eleve_absent: ['Élève absent', 'Student absent', 'Aluno faltou'],
+  absence_confirmer: ['Confirmer l’absence ? L’heure restera due.', 'Confirm the no-show? The hour remains due.', 'Confirmar a falta? A hora continua devida.'],
+  lecon_validee: ['Leçon validée', 'Lesson validated', 'Aula validada'],
+  seances_theorie: ['Séances de théorie', 'Theory sessions', 'Sessões de teoria'],
+  pointer: ['Pointer les présences', 'Take attendance', 'Registar presenças'],
+  pointee: ['Présences enregistrées', 'Attendance recorded', 'Presenças registadas'],
+  present: ['Présent', 'Present', 'Presente'],
+  pt_demarrage: ['Démarrage et arrêt', 'Starting and stopping', 'Arranque e paragem'],
+  pt_ville: ['Circulation en ville', 'City driving', 'Condução em cidade'],
+  pt_priorites: ['Priorités', 'Right of way', 'Prioridades'],
+  pt_giratoire: ['Ronds-points', 'Roundabouts', 'Rotundas'],
+  pt_autoroute: ['Autoroute', 'Motorway', 'Autoestrada'],
+  pt_stationnement: ['Stationnement / créneau', 'Parking', 'Estacionamento'],
+  pt_marche_arriere: ['Marche arrière', 'Reversing', 'Marcha-atrás'],
+  pt_cote: ['Démarrage en côte', 'Hill start', 'Arranque em subida'],
+  pt_eco: ['Conduite économique', 'Eco-driving', 'Condução económica'],
+
+  // Bureau
+  tableau_bord: ['Tableau de bord', 'Dashboard', 'Painel'],
+  lecons_aujourdhui: ['Leçons aujourd’hui', 'Lessons today', 'Aulas hoje'],
+  certificats_attente: ['Certificats à vérifier', 'Certificates to review', 'Atestados por verificar'],
+  factures_encaisser: ['Factures à encaisser', 'Invoices to collect', 'Faturas por cobrar'],
+  eleves_actifs: ['Élèves actifs', 'Active students', 'Alunos ativos'],
+  planifier: ['Planifier une leçon', 'Schedule a lesson', 'Marcar uma aula'],
+  eleve: ['Élève', 'Student', 'Aluno'],
+  choisir_eleve: ['Choisir un élève', 'Choose a student', 'Escolher aluno'],
+  nouvel_eleve: ['Nouvel élève', 'New student', 'Novo aluno'],
+  inviter_info: ['Un compte est créé avec un mot de passe provisoire, que vous remettez à la personne.', 'An account is created with a temporary password for you to hand over.', 'É criada uma conta com uma palavra-passe provisória, que entrega à pessoa.'],
+  creer: ['Créer', 'Create', 'Criar'],
+  fiche_eleve: ['Fiche élève', 'Student file', 'Ficha do aluno'],
+  ajuster_solde: ['Ajuster le solde', 'Adjust balance', 'Ajustar saldo'],
+  heures_ajout: ['Heures (+ ou −)', 'Hours (+ or −)', 'Horas (+ ou −)'],
+  vendre_formule: ['Vendre une formule', 'Sell a package', 'Vender um pacote'],
+  facture_inscription: ['Facture d’inscription (295 €)', 'Registration invoice (€295)', 'Fatura de inscrição (295 €)'],
+  theorie_reussie: ['Examen théorique réussi le', 'Theory exam passed on', 'Exame teórico aprovado em'],
+  non_renseigne: ['Non renseigné', 'Not set', 'Não indicado'],
+  historique: ['Historique', 'History', 'Histórico'],
+  encaisser: ['Encaisser', 'Collect', 'Cobrar'],
+  encaisse: ['Encaissé', 'Collected', 'Cobrado'],
+  moyen: ['Moyen de paiement', 'Payment method', 'Meio de pagamento'],
+  reference: ['Référence (facultatif)', 'Reference (optional)', 'Referência (opcional)'],
+  annuler_facture: ['Annuler la facture', 'Cancel invoice', 'Anular fatura'],
+  a_encaisser: ['À encaisser', 'To collect', 'Por cobrar'],
+  toutes: ['Toutes', 'All', 'Todas'],
+  accepter: ['Accepter', 'Accept', 'Aceitar'],
+  refuser: ['Refuser', 'Refuse', 'Recusar'],
+  voir_certificat: ['Voir le certificat', 'View certificate', 'Ver atestado'],
+  lecon_du: ['Leçon du {d}', 'Lesson of {d}', 'Aula de {d}'],
+  annulee_le: ['annulée le {d}', 'cancelled on {d}', 'cancelada em {d}'],
+  tarifs: ['Tarifs (TTC)', 'Prices (incl. VAT)', 'Preços (IVA incl.)'],
+  frais_inscription: ['Frais d’inscription (HT)', 'Registration fees (excl. VAT)', 'Taxas de inscrição (s/ IVA)'],
+  regles: ['Règles', 'Rules', 'Regras'],
+  delai_annulation: ['Délai d’annulation gratuite (heures)', 'Free cancellation window (hours)', 'Prazo de cancelamento gratuito (horas)'],
+  max_semaine: ['Maximum de leçons par semaine', 'Max lessons per week', 'Máximo de aulas por semana'],
+  heures_lecons: ['Heures de début des leçons', 'Lesson start times', 'Horas de início das aulas'],
+  jours_ouverture: ['Jours d’ouverture', 'Opening days', 'Dias de abertura'],
+  coordonnees: ['Coordonnées et banque', 'Contact and bank', 'Contactos e banco'],
+  adresse: ['Adresse', 'Address', 'Morada'],
+  fermetures: ['Jours de fermeture', 'Closing days', 'Dias de encerramento'],
+  ajouter: ['Ajouter', 'Add', 'Adicionar'],
+  gerant_seul: ['Seul le gérant peut modifier ces réglages.', 'Only the manager can change these settings.', 'Só o gerente pode alterar estas definições.'],
+  jours_courts: ['Lun,Mar,Mer,Jeu,Ven,Sam,Dim', 'Mon,Tue,Wed,Thu,Fri,Sat,Sun', 'Seg,Ter,Qua,Qui,Sex,Sáb,Dom'],
+
+  lecons: ['Leçons', 'Lessons', 'Aulas'],
+  compte_cree: ['Compte créé', 'Account created', 'Conta criada'],
+  mdp_temporaire: ['Donnez ce mot de passe provisoire à la personne. Elle se connecte avec {email} :', 'Give this temporary password to the person. They sign in with {email}:', 'Entregue esta palavra-passe provisória à pessoa. Ela entra com {email}:'],
+  mdp_temporaire_info: ['Ce mot de passe n’est affiché qu’une fois. La personne pourra le changer dans son profil.', 'This password is shown only once. The person can change it in their profile.', 'Esta palavra-passe só é mostrada uma vez. A pessoa pode alterá-la no perfil.'],
+  activer: ['Activer', 'Activate', 'Ativar'],
+  desactiver: ['Désactiver', 'Deactivate', 'Desativar'],
+  equipe: ['Équipe', 'Team', 'Equipa'],
+  role: ['Rôle', 'Role', 'Função'],
+  role_gerant: ['Gérant', 'Manager', 'Gerente'],
+  role_secretariat: ['Secrétariat', 'Office', 'Secretariado'],
+  role_moniteur: ['Moniteur', 'Instructor', 'Instrutor'],
+  role_lecture: ['Lecture seule (comptable)', 'Read only (accountant)', 'Só leitura (contabilista)'],
+  role_eleve: ['Élève', 'Student', 'Aluno'],
+  moniteur_referent: ['Moniteur référent', 'Main instructor', 'Instrutor de referência'],
+  validite: ['Valable jusqu’au', 'Valid until', 'Válido até'],
+  numero_tva: ['N° de TVA', 'VAT number', 'N.º de IVA'],
+  numero_agrement: ['N° d’agrément', 'Licence number', 'N.º de licença'],
+  rendre_heure: ['Rendre l’heure à l’élève (exception)', 'Give the hour back to the student (exception)', 'Devolver a hora ao aluno (exceção)'],
+  certif_info: ['Annulations à moins de {h} h : acceptez le certificat pour recréditer l’heure. Le fichier médical est supprimé après la décision.', 'Cancellations under {h} h: accept the certificate to credit the hour back. The medical file is deleted after the decision.', 'Cancelamentos com menos de {h} h: aceite o atestado para devolver a hora. O ficheiro médico é apagado após a decisão.'],
+  vente_info: ['La facture est créée tout de suite. Les heures sont ajoutées au solde à l’encaissement.', 'The invoice is created right away. Hours are added when payment is collected.', 'A fatura é criada de imediato. As horas são adicionadas ao saldo após o pagamento.'],
+  mvt_achat: ['Achat d’heures', 'Hours purchased', 'Compra de horas'],
+  mvt_reservation: ['Leçon réservée', 'Lesson booked', 'Aula reservada'],
+  mvt_recredit_annulation: ['Annulation gratuite', 'Free cancellation', 'Cancelamento gratuito'],
+  mvt_recredit_certificat: ['Certificat médical accepté', 'Medical certificate accepted', 'Atestado médico aceite'],
+  mvt_ajustement: ['Ajustement', 'Adjustment', 'Ajuste'],
+
+  // Erreurs
+  err_IDENTIFIANTS_INVALIDES: ['E-mail ou mot de passe incorrect.', 'Wrong email or password.', 'E-mail ou palavra-passe incorretos.'],
+  err_SOLDE_INSUFFISANT: ['Vous n’avez plus d’heures disponibles. Achetez des heures pour réserver.', 'No hours left. Buy hours to book.', 'Não tem horas disponíveis. Compre horas para reservar.'],
+  err_MAXIMUM_SEMAINE: ['Vous avez atteint le maximum de leçons pour cette semaine.', 'You have reached the maximum number of lessons this week.', 'Atingiu o máximo de aulas para esta semana.'],
+  err_CRENEAU_INDISPONIBLE: ['Ce créneau vient d’être pris. Choisissez-en un autre.', 'This slot was just taken. Please choose another.', 'Este horário acabou de ser ocupado. Escolha outro.'],
+  err_THEORIE_NON_REUSSIE: ['Les leçons de conduite se réservent après la réussite de l’examen théorique.', 'Driving lessons are booked after passing the theory exam.', 'As aulas reservam-se após aprovação no exame teórico.'],
+  err_LECON_COMMENCEE: ['La leçon a déjà commencé.', 'The lesson has already started.', 'A aula já começou.'],
+  err_NON_ANNULABLE: ['Cette leçon ne peut plus être annulée.', 'This lesson can no longer be cancelled.', 'Esta aula já não pode ser cancelada.'],
+  err_SIGNATURE_MANQUANTE: ['La signature de l’élève est obligatoire.', 'The student’s signature is required.', 'A assinatura do aluno é obrigatória.'],
+  err_TROP_TOT: ['La leçon n’a pas encore commencé.', 'The lesson has not started yet.', 'A aula ainda não começou.'],
+  err_MOTIF_OBLIGATOIRE: ['Merci d’indiquer un motif.', 'Please give a reason.', 'Indique um motivo.'],
+  err_EMAIL_DEJA_UTILISE: ['Cette adresse e-mail est déjà utilisée.', 'This email address is already in use.', 'Este e-mail já está a ser utilizado.'],
+  err_INTERDIT: ['Vous n’avez pas les droits pour cette action.', 'You are not allowed to do this.', 'Não tem permissão para esta ação.'],
+  err_DEJA_TRAITE: ['Déjà traité.', 'Already processed.', 'Já tratado.'],
+  err_inconnue: ['Une erreur est survenue. Réessayez.', 'Something went wrong. Please try again.', 'Ocorreu um erro. Tente novamente.'],
+};
+
+const IDX: Record<Lang, number> = { fr: 0, en: 1, pt: 2 };
+export const LOCALE: Record<Lang, string> = { fr: 'fr-LU', en: 'en-GB', pt: 'pt-PT' };
+
+export type T = (key: string, vars?: Record<string, string | number>) => string;
+
+function makeT(lang: Lang): T {
+  return (key, vars) => {
+    const row = D[key];
+    let s = row ? row[IDX[lang]] : key;
+    if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+    return s;
+  };
+}
+
+type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: T };
+const I18n = createContext<Ctx>({ lang: 'fr', setLang: () => {}, t: makeT('fr') });
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(() => { let l: string | null = null; try { l = localStorage.getItem('luxdrive-lang'); } catch { /* ignore */ } return l === 'en' || l === 'pt' ? l : 'fr'; });
+  const value = useMemo<Ctx>(() => ({
+    lang, t: makeT(lang),
+    setLang: (l: Lang) => { try { localStorage.setItem('luxdrive-lang', l); } catch { /* ignore */ } document.documentElement.lang = l; setLangState(l); },
+  }), [lang]);
+  return <I18n.Provider value={value}>{children}</I18n.Provider>;
+}
+
+export const useI18n = () => useContext(I18n);
+
+export function errorText(t: T, e: unknown): string {
+  const msg = e instanceof Error ? e.message : String(e);
+  const code = (msg.match(/[A-Z_]{5,}/) ?? [])[0];
+  if (code && D['err_' + code]) return t('err_' + code);
+  return t('err_inconnue');
+}
