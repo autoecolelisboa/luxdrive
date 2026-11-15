@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { backend } from '../../lib/backend';
+import { dateLong, time } from '../../lib/format';
 import { useI18n } from '../../lib/i18n';
 import { useMe } from '../../lib/session';
 import { LeconTitre, LieuDepart, type Lecon } from '../../components/lecon';
 import { Loading, useLoad } from '../../components/ui';
 
 export function EleveAccueil() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const me = useMe();
   const b = backend();
   const { data, error } = useLoad(async () => {
@@ -14,7 +15,11 @@ export function EleveAccueil() {
     const [e] = await b.select('eleves', { eq: { id: me.profil.id } });
     const [next] = await b.select<Lecon>('v_lecons', { eq: { eleve_id: me.profil.id, statut: 'reservee' }, gte: { debut: new Date().toISOString() }, order: [['debut', 'asc']], limit: 1 });
     const notifs = await b.select('notifications', { order: [['created_at', 'desc']], limit: 3 });
-    return { solde: Number(s?.solde_heures ?? 0), theorie: Number(s?.theorie_faites ?? 0), pratique: Number(s?.pratique_faites ?? 0), e, next, notifs };
+    const mesPresences = await b.select('presences_theorie', { eq: { eleve_id: me.profil.id } });
+    const seanceIds = mesPresences.map((p: any) => p.seance_id);
+    const seances = seanceIds.length ? await b.select('seances_theorie', { in: { id: seanceIds }, gte: { fin: new Date().toISOString() }, order: [['debut', 'asc']], limit: 3 }) : [];
+    const [examen] = await b.select('examens', { eq: { eleve_id: me.profil.id, resultat: 'a_venir' }, gte: { date: new Date().toISOString() }, order: [['date', 'asc']], limit: 1 });
+    return { solde: Number(s?.solde_heures ?? 0), theorie: Number(s?.theorie_faites ?? 0), pratique: Number(s?.pratique_faites ?? 0), e, next, notifs, seances, examen };
   }, [me.profil.id]);
 
   if (!data) return <Loading error={error} />;
@@ -48,6 +53,24 @@ export function EleveAccueil() {
           </div>
         ) : <div className="card muted">{t('aucune_lecon_prevue')}</div>}
       </div>
+
+      {data.examen && (
+        <div className="card soft">
+          <div className="muted small">{t('prochain_examen')}</div>
+          <strong>{t('examen_' + data.examen.type)}</strong> · {dateLong(data.examen.date, lang)} · {time(data.examen.date, lang)}
+        </div>
+      )}
+
+      {data.seances.length > 0 && (
+        <div>
+          <div className="section-title">{t('prochaines_seances')}</div>
+          <div className="list">
+            {data.seances.map((x: any) => (
+              <div className="item" key={x.id}><div className="grow"><strong>{dateLong(x.debut, lang)}</strong> · {time(x.debut, lang)}–{time(x.fin, lang)}<div className="muted small">{x.theme} · {t('auto_ecole')}</div></div></div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <div className="section-title">{t('progression')}</div>

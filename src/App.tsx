@@ -89,6 +89,7 @@ export function App() {
       { to: '/', label: t('nav_accueil'), icon: 'home' },
       { to: '/agenda', label: t('nav_agenda'), icon: 'calendar' },
       { to: '/eleves', label: t('nav_eleves'), icon: 'users' },
+      { to: '/theorie', label: t('nav_theorie'), icon: 'book' },
       { to: '/factures', label: t('nav_factures'), icon: 'file' },
       { to: '/certificats', label: t('nav_justificatifs'), icon: 'check' },
       { to: '/reglages', label: t('nav_reglages'), icon: 'settings' },
@@ -100,6 +101,7 @@ export function App() {
           <Route path="agenda" element={<Agenda />} />
           <Route path="eleves" element={<Eleves />} />
           <Route path="eleves/:id" element={<FicheEleve />} />
+          <Route path="theorie" element={<Theorie />} />
           <Route path="factures" element={<Factures />} />
           <Route path="certificats" element={<Justificatifs />} />
           <Route path="reglages" element={<Reglages />} />

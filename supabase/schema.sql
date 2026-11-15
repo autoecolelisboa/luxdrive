@@ -773,6 +773,8 @@ create policy presences_lire on public.presences_theorie for select to authentic
   eleve_id = auth.uid() or exists (select 1 from seances_theorie s where s.id = seance_id and s.auto_ecole_id = public.mon_ecole() and public.est_staff()));
 create policy presences_inscrire on public.presences_theorie for insert to authenticated with check (
   exists (select 1 from seances_theorie s where s.id = seance_id and s.auto_ecole_id = public.mon_ecole() and public.est_bureau()));
+create policy presences_retirer on public.presences_theorie for delete to authenticated using (
+  exists (select 1 from seances_theorie s where s.id = seance_id and s.auto_ecole_id = public.mon_ecole() and public.est_bureau()));
 
 create policy examens_lire on public.examens for select to authenticated using (
   eleve_id = auth.uid() or (auto_ecole_id = public.mon_ecole() and public.est_staff()));

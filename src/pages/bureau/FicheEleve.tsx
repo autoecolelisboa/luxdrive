@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { backend } from '../../lib/backend';
-import { dateShort, euro, luxDate } from '../../lib/format';
+import { dateShort, euro, luxDate, time } from '../../lib/format';
 import { useI18n } from '../../lib/i18n';
 import { useMe } from '../../lib/session';
 import { LeconTitre, StatutBadge, type Lecon } from '../../components/lecon';
 import { FactureBadge, type Facture } from '../../components/facture';
 import { Empty, Field, Loading, Sheet, useAction, useLoad } from '../../components/ui';
 import { Planifier } from './Agenda';
+import { luxInstant } from '../moniteur/Theorie';
 import { FactureSheet } from './Factures';
 
 export function FicheEleve() {
@@ -17,7 +18,8 @@ export function FicheEleve() {
   const b = backend();
   const nav = useNavigate();
   const { run, busy } = useAction();
-  const [sheet, setSheet] = useState<'ajuster' | 'vendre' | 'planifier' | null>(null);
+  const [sheet, setSheet] = useState<'ajuster' | 'vendre' | 'planifier' | 'examen' | null>(null);
+  const [exam, setExam] = useState({ type: 'theorique', jour: luxDate(new Date(), 7), heure: '09:00' });
   const [facture, setFacture] = useState<Facture | null>(null);
   const [heures, setHeures] = useState('1');
   const [motif, setMotif] = useState('');
@@ -26,7 +28,7 @@ export function FicheEleve() {
   const canWrite = me.profil.role !== 'lecture';
 
   const { data, error, reload } = useLoad(async () => {
-    const [[e], lecons, factures, mouvements, moniteurs, formules, [acc]] = await Promise.all([
+    const [[e], lecons, factures, mouvements, moniteurs, formules, [acc], examens] = await Promise.all([
       b.select('v_eleves', { eq: { id } }),
       b.select<Lecon>('v_lecons', { eq: { eleve_id: id }, order: [['debut', 'desc']], limit: 100 }),
       b.select<Facture>('v_factures', { eq: { eleve_id: id }, order: [['created_at', 'desc']] }),
@@ -34,9 +36,10 @@ export function FicheEleve() {
       b.select('profils', { eq: { role: 'moniteur', actif: true }, order: [['prenom', 'asc']] }),
       b.select('formules', { eq: { active: true }, order: [['ordre', 'asc']] }),
       b.select('accompagnateurs', { eq: { eleve_id: id } }),
+      b.select('examens', { eq: { eleve_id: id }, order: [['date', 'desc']] }),
     ]);
     if (!e) throw new Error('ELEVE_INCONNU');
-    return { e, lecons, factures, mouvements, moniteurs, formules, acc };
+    return { e, lecons, factures, mouvements, moniteurs, formules, acc, examens };
   }, [id]);
   const [edit, setEdit] = useState<Record<string, any> | null>(null);
 
@@ -50,6 +53,13 @@ export function FicheEleve() {
       certificat_validite: form.certificat_validite || null, moniteur_referent_id: form.moniteur_referent_id || null,
     }, { id });
     setEdit(null); reload();
+  }, t('enregistre'));
+
+  const resultat = (x: any, r: 'reussi' | 'echoue') => run(async () => {
+    await b.update('examens', { resultat: r }, { id: x.id });
+    // Théorie réussie : l'élève peut ensuite réserver ses leçons de conduite
+    if (x.type === 'theorique' && r === 'reussi' && !e.theorie_reussie_le) await b.update('eleves', { theorie_reussie_le: luxDate(new Date(Math.min(Date.now(), new Date(x.date).getTime()))) }, { id });
+    reload();
   }, t('enregistre'));
 
   const sell = (c: string, m: 'virement' | 'especes') => run(async () => {
@@ -112,6 +122,30 @@ export function FicheEleve() {
         </div>
       )}
 
+      <div className="row between">
+        <div className="section-title">{t('examens')}</div>
+        {canWrite && <button className="btn ghost sm" onClick={() => setSheet('examen')}>+ {t('nouvel_examen')}</button>}
+      </div>
+      {data.examens.length === 0 ? <Empty /> : (
+        <div className="list">
+          {data.examens.map((x: any) => (
+            <div className="item" key={x.id}>
+              <div className="grow">
+                <strong>{t('examen_' + x.type)}</strong>
+                <div className="muted small">{dateShort(x.date, lang)} · {time(x.date, lang)}</div>
+              </div>
+              {x.resultat === 'a_venir' && canWrite ? (
+                <div className="row">
+                  <button className="btn sm" disabled={busy} onClick={() => resultat(x, 'reussi')}>{t('res_reussi')}</button>
+                  <button className="btn secondary sm" disabled={busy} onClick={() => resultat(x, 'echoue')}>{t('res_echoue')}</button>
+                </div>
+              ) : <span className={'badge ' + (x.resultat === 'reussi' ? 'ok' : x.resultat === 'echoue' ? 'bad' : '')}>{t('res_' + x.resultat)}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {data.examens.some((x: any) => x.type === 'pratique' && x.resultat === 'echoue') && <div className="alert warn small">{t('echec_info')}</div>}
+
       <div className="section-title">{t('nav_factures')}</div>
       {data.factures.length === 0 ? <Empty /> : (
         <div className="list">
@@ -159,6 +193,25 @@ export function FicheEleve() {
           </Field>
           <p className="small muted">{t('vente_info')}</p>
           <button className="btn block" disabled={busy} onClick={() => sell(code, moyen)}>{t('creer')}</button>
+        </div>
+      </Sheet>
+
+      <Sheet open={sheet === 'examen'} onClose={() => setSheet(null)} title={t('nouvel_examen')}>
+        <div className="stack">
+          <Field label={t('type')}>
+            <select className="input" value={exam.type} onChange={ev => setExam({ ...exam, type: ev.target.value })}>
+              <option value="theorique">{t('examen_theorique')}</option><option value="pratique">{t('examen_pratique')}</option>
+            </select>
+          </Field>
+          <div className="grid2">
+            <Field label={t('date')}><input className="input" type="date" value={exam.jour} onChange={ev => setExam({ ...exam, jour: ev.target.value })} /></Field>
+            <Field label={t('heure')}><input className="input" type="time" step={900} value={exam.heure} onChange={ev => setExam({ ...exam, heure: ev.target.value })} /></Field>
+          </div>
+          {exam.type === 'theorique' && <p className="small muted">{t('snca_info')}</p>}
+          <button className="btn block" disabled={busy || !exam.jour} onClick={() => run(async () => {
+            await b.insert('examens', [{ auto_ecole_id: me.ecole.id, eleve_id: id, type: exam.type, date: luxInstant(exam.jour, exam.heure) }]);
+            setSheet(null); reload();
+          }, t('enregistre'))}>{t('creer')}</button>
         </div>
       </Sheet>
 

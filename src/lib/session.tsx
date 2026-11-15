@@ -28,7 +28,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     const b = backend();
     const u = await b.currentUser();
-    if (!u) { setState({ status: 'signedOut' }); return; }
+    if (!u) {
+      // after signing out, the next person starts on their home screen
+      if (location.hash && location.hash !== '#/') location.replace('#/');
+      setState({ status: 'signedOut' }); return;
+    }
     const [p] = await b.select<Profil>('profils', { eq: { id: u.id } });
     if (!p || !p.actif) { setState({ status: 'inactive', email: u.email }); return; }
     const [ecole] = await b.select<AutoEcole>('auto_ecoles', { eq: { id: p.auto_ecole_id } });
