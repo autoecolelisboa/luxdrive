@@ -8,6 +8,7 @@ export type AutoEcole = {
   id: string; nom: string; adresse: string | null; telephone: string | null; email: string | null; iban: string | null; beneficiaire: string | null;
   delai_annulation_h: number; max_lecons_semaine: number; delai_reservation_h: number; jours_ouverture: number[]; heures_lecons: number[];
   numero_tva: string | null; numero_agrement: string | null;
+  forme_juridique: string | null; representant: string | null; rcs: string | null; autorisation_etablissement: string | null;
 };
 
 type State =

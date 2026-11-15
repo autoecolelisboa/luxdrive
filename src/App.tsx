@@ -5,6 +5,8 @@ import { backend } from './lib/backend';
 import { useI18n } from './lib/i18n';
 import { isBureau, useSession } from './lib/session';
 import { Login } from './pages/Login';
+import { LegalPage, type LegalKind } from './pages/Legal';
+import { useParams, Link } from 'react-router-dom';
 import { Profil, SetPassword } from './pages/Profil';
 import { EleveAccueil } from './pages/eleve/Accueil';
 import { Reserver } from './pages/eleve/Reserver';
@@ -29,7 +31,13 @@ export function App() {
   if (state.status === 'loading') return <div className="login"><p className="muted">{t('chargement')}</p></div>;
   if (state.status === 'error')
     return <div className="login"><div className="login-box center"><img src="./logo.svg?v=2" alt="" style={{ width: 160 }} /><div className="alert bad">{state.message.includes('CONFIG') ? t('config_manquante') : state.message}</div></div></div>;
-  if (state.status === 'signedOut') return <Login />;
+  if (state.status === 'signedOut')
+    return (
+      <Routes>
+        <Route path="legal/:kind" element={<div className="content"><Link className="btn ghost sm" to="/">‹ {t('retour')}</Link><LegalRoute /></div>} />
+        <Route path="*" element={<Login />} />
+      </Routes>
+    );
   if (state.status === 'inactive')
     return (
       <div className="login"><div className="login-box center stack">
@@ -59,6 +67,7 @@ export function App() {
           <Route path="lecons" element={<MesLecons />} />
           <Route path="paiements" element={<Paiements />} />
           <Route path="profil" element={<Profil />} />
+          <Route path="legal/:kind" element={<LegalRoute />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
@@ -78,6 +87,7 @@ export function App() {
           <Route path="lecon/:id" element={<LeconMoniteur />} />
           <Route path="theorie" element={<Theorie />} />
           <Route path="profil" element={<Profil />} />
+          <Route path="legal/:kind" element={<LegalRoute />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
@@ -106,10 +116,17 @@ export function App() {
           <Route path="certificats" element={<Justificatifs />} />
           <Route path="reglages" element={<Reglages />} />
           <Route path="profil" element={<Profil />} />
+          <Route path="legal/:kind" element={<LegalRoute />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     );
   }
   return null;
+}
+
+function LegalRoute() {
+  const { kind } = useParams();
+  const k: LegalKind = kind === 'conditions' || kind === 'confidentialite' ? kind : 'mentions';
+  return <LegalPage kind={k} />;
 }

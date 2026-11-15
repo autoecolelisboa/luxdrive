@@ -3,6 +3,7 @@ import { backend } from '../lib/backend';
 import { useI18n } from '../lib/i18n';
 import { useMe, useSession } from '../lib/session';
 import { Icon } from './ui';
+import { LegalFooter } from '../pages/Legal';
 
 export type NavItem = { to: string; label: string; icon: string };
 
@@ -32,6 +33,7 @@ export function Layout({ nav, wide }: { nav: NavItem[]; wide?: boolean }) {
       </header>
       <main className={'content' + (wide ? ' wide' : '')}>
         <Outlet />
+        <LegalFooter />
       </main>
       <nav className="bottomnav no-print" aria-label="Navigation">
         <div className="bottomnav-in">

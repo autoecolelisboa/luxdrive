@@ -1,5 +1,7 @@
 # LuxDrive — Auto École Lisboa
 
+© 2026 HMA Productions — tous droits réservés (voir `LICENSE`).
+
 Application de l'auto-école : réservation des leçons, suivi des élèves, moniteurs, factures et paiements
 (Wero, virement, espèces). Langues : français, portugais, anglais.
 

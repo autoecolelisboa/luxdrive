@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { backend } from '../lib/backend';
 import { LANGS, errorText, useI18n } from '../lib/i18n';
 import { Field } from '../components/ui';
+import { LegalFooter } from './Legal';
 
 export function Login() {
   const { t, lang, setLang } = useI18n();
@@ -55,6 +56,7 @@ export function Login() {
             <button type="button" className="btn ghost block" onClick={forgot}>{t('mdp_oublie')}</button>
           </form>
         )}
+        <LegalFooter />
       </div>
     </div>
   );

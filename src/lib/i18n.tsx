@@ -232,6 +232,13 @@ const D: Record<string, [string, string, string]> = {
   jours_courts: ['Lun,Mar,Mer,Jeu,Ven,Sam,Dim', 'Mon,Tue,Wed,Thu,Fri,Sat,Sun', 'Seg,Ter,Qua,Qui,Sex,Sáb,Dom'],
 
   lecons: ['Leçons', 'Lessons', 'Aulas'],
+  mentions_legales: ['Mentions légales', 'Legal notice', 'Informação legal'],
+  forme_juridique: ['Forme juridique', 'Legal form', 'Forma jurídica'],
+  representant: ['Représentant légal (gérant)', 'Legal representative (manager)', 'Representante legal (gerente)'],
+  rcs: ['N° RCS', 'Trade register no. (RCS)', 'N.º RCS'],
+  autorisation_etablissement: ['N° d’autorisation d’établissement', 'Business permit no.', 'N.º de autorização de estabelecimento'],
+  mentions_a_completer: ['À compléter : ces informations sont obligatoires sur les pages Mentions légales, Conditions et Confidentialité (e-mail de contact compris, plus haut).', 'To complete: this information is required on the Legal notice, Terms and Privacy pages (including the contact e-mail above).', 'A completar: estas informações são obrigatórias nas páginas Informação legal, Condições e Privacidade (incluindo o e-mail de contacto acima).'],
+  mentions_info: ['Ces informations, avec l’adresse, le téléphone, l’e-mail et le n° de TVA, apparaissent automatiquement dans les pages en bas de l’application.', 'This information, with the address, phone, e-mail and VAT number, appears automatically on the pages at the bottom of the app.', 'Estas informações, com a morada, o telefone, o e-mail e o n.º de IVA, aparecem automaticamente nas páginas no fundo da aplicação.'],
   nouvelle_seance: ['Nouvelle séance', 'New session', 'Nova sessão'],
   theme: ['Thème', 'Topic', 'Tema'],
   duree_min: ['Durée (minutes)', 'Duration (minutes)', 'Duração (minutos)'],

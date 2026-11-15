@@ -27,6 +27,10 @@ create table public.auto_ecoles (
   delai_reservation_h integer not null default 2 check (delai_reservation_h >= 0),
   jours_ouverture    integer[] not null default '{1,2,3,4,5,6}',          -- 1 = lundi … 7 = dimanche
   heures_lecons      integer[] not null default '{8,9,10,11,13,14,15,16,17,18}',
+  forme_juridique    text,
+  representant       text,
+  rcs                text,
+  autorisation_etablissement text,
   created_at         timestamptz not null default now()
 );
 
@@ -809,6 +813,27 @@ grant execute on function public.creneaux_libres(date, uuid, uuid), public.reser
   public.soldes_visibles()
   to authenticated;
 grant execute on function public.encaisser_facture(uuid, text, text), public.est_service() to service_role;
+
+-- Informations publiques (mentions légales, conditions, confidentialité), lisibles sans connexion
+create or replace function public.infos_publiques()
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'nom', a.nom, 'adresse', a.adresse, 'telephone', a.telephone, 'email', a.email,
+    'numero_tva', a.numero_tva, 'rcs', a.rcs, 'forme_juridique', a.forme_juridique,
+    'representant', a.representant, 'autorisation_etablissement', a.autorisation_etablissement,
+    'numero_agrement', a.numero_agrement, 'delai_annulation_h', a.delai_annulation_h,
+    'max_lecons_semaine', a.max_lecons_semaine,
+    'formules', coalesce((select jsonb_agg(jsonb_build_object('nom', f.nom, 'heures', f.heures, 'prix_ttc', f.prix_ttc, 'taux_tva', f.taux_tva) order by f.ordre)
+                          from formules f where f.auto_ecole_id = a.id and f.active), '[]'::jsonb),
+    'inscription', coalesce((select jsonb_agg(jsonb_build_object('libelle', l.libelle, 'montant_ht', l.montant_ht, 'taux_tva', l.taux_tva) order by l.ordre)
+                             from inscription_lignes l where l.auto_ecole_id = a.id), '[]'::jsonb))
+  from auto_ecoles a
+  order by a.created_at
+  limit 1
+$$;
+revoke execute on function public.infos_publiques() from public;
+grant execute on function public.infos_publiques() to anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- 6. Fichiers privés : certificats médicaux

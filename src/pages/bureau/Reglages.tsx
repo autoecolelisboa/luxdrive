@@ -38,6 +38,8 @@ export function Reglages() {
     await b.update('auto_ecoles', {
       adresse: ae.adresse, telephone: ae.telephone, email: ae.email, beneficiaire: ae.beneficiaire, iban: ae.iban?.toUpperCase() ?? null,
       numero_tva: ae.numero_tva, numero_agrement: ae.numero_agrement, delai_annulation_h: Number(ae.delai_annulation_h),
+      forme_juridique: ae.forme_juridique || null, representant: ae.representant || null, rcs: ae.rcs || null,
+      autorisation_etablissement: ae.autorisation_etablissement || null,
       max_lecons_semaine: Number(ae.max_lecons_semaine), jours_ouverture: ae.jours_ouverture, heures_lecons: heures,
     }, { id: me.ecole.id });
     for (const [id, v] of Object.entries(prix)) await b.update('formules', { prix_ttc: Number(v.replace(',', '.')) }, { id });
@@ -106,6 +108,17 @@ export function Reglages() {
             <Field label={t('numero_tva')}><input className="input" value={ae.numero_tva ?? ''} onChange={e => setAe({ ...ae, numero_tva: e.target.value })} placeholder="LU12345678" /></Field>
             <Field label={t('numero_agrement')}><input className="input" value={ae.numero_agrement ?? ''} onChange={e => setAe({ ...ae, numero_agrement: e.target.value })} /></Field>
           </div>
+        </div>
+        <div className="section-title">{t('mentions_legales')}</div>
+        <div className="card stack">
+          {(!ae.rcs || !ae.autorisation_etablissement || !ae.forme_juridique || !ae.representant || !ae.email) && <div className="alert warn small">{t('mentions_a_completer')}</div>}
+          <div className="grid2">
+            <Field label={t('forme_juridique')}><input className="input" value={ae.forme_juridique ?? ''} onChange={e => setAe({ ...ae, forme_juridique: e.target.value })} placeholder="s.à r.l., entreprise individuelle…" /></Field>
+            <Field label={t('representant')}><input className="input" value={ae.representant ?? ''} onChange={e => setAe({ ...ae, representant: e.target.value })} /></Field>
+            <Field label={t('rcs')}><input className="input" value={ae.rcs ?? ''} onChange={e => setAe({ ...ae, rcs: e.target.value })} placeholder="B123456 / A123456" /></Field>
+            <Field label={t('autorisation_etablissement')}><input className="input" value={ae.autorisation_etablissement ?? ''} onChange={e => setAe({ ...ae, autorisation_etablissement: e.target.value })} /></Field>
+          </div>
+          <p className="small muted">{t('mentions_info')}</p>
         </div>
         {gerant && <button className="btn block" disabled={busy} onClick={save}>{t('enregistrer')}</button>}
       </fieldset>

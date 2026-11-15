@@ -12,7 +12,7 @@ const demoSchema = schemaSql
   .replace(/create extension if not exists btree_gist[^;]*;/, '')
   .replace(/,\s*-- Jamais deux leçons[^\n]*\n\s*constraint lecons_moniteur_sans_chevauchement[\s\S]*?constraint lecons_eleve_sans_chevauchement[\s\S]*?where \(statut in \('reservee','effectuee','absence'\)\)/, '');
 
-const DB_NAME = 'luxdrive-demo-6';
+const DB_NAME = 'luxdrive-demo-7';
 const USER_KEY = 'luxdrive-demo-user';
 const SETOF = new Set(['creneaux_libres']);
 const AE = '00000000-0000-4000-8000-000000000001';
@@ -64,7 +64,7 @@ export async function createDemoBackend(): Promise<Backend> {
       return r.rows;
     });
   }
-  const rpcAs = async (who: string | 'service', fn: string, args: Record<string, unknown> = {}) => {
+  const rpcAs = async (who: string | null | 'service', fn: string, args: Record<string, unknown> = {}) => {
     const keys = Object.keys(args);
     const call = `public.${ident(fn)}(${keys.map((k, i) => `${ident(k)} => $${i + 1}`).join(', ')})`;
     const vals = keys.map(k => args[k] ?? null);
@@ -126,7 +126,7 @@ export async function createDemoBackend(): Promise<Backend> {
       return r ? { id: uid, email: r.email } : null;
     },
     onAuthChange(cb) { listeners.add(cb); return () => listeners.delete(cb); },
-    async rpc(fn, args = {}) { return rpcAs(uid ?? 'anon', fn, args) as any; },
+    async rpc(fn, args = {}) { return rpcAs(uid, fn, args) as any; },
     async select(table, f: Filter = {}) {
       const where: string[] = []; const params: unknown[] = [];
       const p = (v: unknown) => { params.push(v); return '$' + params.length; };
